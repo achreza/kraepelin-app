@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:kraepelin/app/modules/quiz/controllers/quiz_controller.dart';
+import 'package:kraepelin/app/routes/app_pages.dart';
 
 import '../../../../../constant.dart';
 
@@ -26,13 +27,32 @@ class ScoreScreen extends StatelessWidget {
               ),
               Spacer(),
               Text(
-                "Jawaban Benar : ${_qnController.correctAns}",
+                "Jawaban Benar : ${_qnController.numOfCorrectAns}",
                 style: Theme.of(context)
                     .textTheme
                     .headline4!
                     .copyWith(color: kSecondaryColor),
               ),
-              Spacer(flex: 3),
+              Spacer(),
+              Text(
+                "Jawaban Salah : ${_qnController.numOfWrongAns}",
+                style: Theme.of(context)
+                    .textTheme
+                    .headline4!
+                    .copyWith(color: kSecondaryColor),
+              ),
+              Spacer(),
+              Text(
+                "Tidak Dijawab : ${20 - (_qnController.numOfWrongAns + _qnController.numOfCorrectAns)}",
+                style: Theme.of(context)
+                    .textTheme
+                    .headline4!
+                    .copyWith(color: kSecondaryColor),
+              ),
+              Spacer(flex: 2),
+              ElevatedButton(
+                  onPressed: () => Get.offNamed(Routes.DASHBOARD),
+                  child: Text("Kembali ke Dashboard"))
             ],
           )
         ],

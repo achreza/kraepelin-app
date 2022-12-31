@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kraepelin/app/data/dto/response/post_user_response.dart';
 import 'package:kraepelin/app/modules/quiz/views/score/score_screen.dart';
+import 'package:kraepelin/app/services/user_service.dart';
 
 import '../../../data/models/question_model.dart';
 
@@ -32,6 +34,8 @@ class QuizController extends GetxController
   ];
   final _random = new Random();
 
+  PostUserResponse? userData;
+
   List<Question>? _questions = [];
   List<Question>? get questions => this._questions;
 
@@ -40,6 +44,9 @@ class QuizController extends GetxController
 
   int? _correctAns;
   int? get correctAns => this._correctAns;
+
+  int? _wrongAns;
+  int? get wrongAns => this._wrongAns;
 
   int? _selectedAns;
   int? get selectedAns => this._selectedAns;
@@ -51,11 +58,21 @@ class QuizController extends GetxController
   int _numOfCorrectAns = 0;
   int get numOfCorrectAns => this._numOfCorrectAns;
 
+  int _numOfWrongAns = 0;
+  int get numOfWrongAns => this._numOfWrongAns;
+
+  int _numOfNotAns = 0;
+  int get numOfNotAns => this._numOfNotAns;
+
+  UserService? userService;
+
   // called immediately after the widget is allocated memory
   @override
   void onInit() {
     // Our animation duration is 60 s
     // so our plan is to fill the progress bar within 60s
+    userService = Get.put<UserService>(UserService());
+    userData = Get.arguments;
     generatePertanyaan();
     _animationController =
         AnimationController(duration: Duration(seconds: 60), vsync: this);
@@ -71,10 +88,21 @@ class QuizController extends GetxController
     _pageController = PageController();
 
     Future.delayed(Duration(seconds: 60)).then((_) {
+      simpanData();
       Get.to(() => ScoreScreen());
     });
 
     super.onInit();
+  }
+
+  void simpanData() async {
+    String message = await userService!.tambahData(
+        numOfCorrectAns.toString(),
+        numOfWrongAns.toString(),
+        numOfNotAns.toString(),
+        "60",
+        userData!.data!.idUser.toString());
+    Get.snackbar("Simpan Data", message);
   }
 
   // // called just before the Controller is deleted from memory
@@ -91,19 +119,22 @@ class QuizController extends GetxController
     _correctAns = question.answer;
     _selectedAns = selectedIndex;
 
-    if (_correctAns == _selectedAns) _numOfCorrectAns++;
+    if (_correctAns == _selectedAns)
+      _numOfCorrectAns++;
+    else
+      _numOfWrongAns++;
 
     // It will stop the counter
     // _animationController!.stop();
     // update();
 
     // Once user select an ans after 3s it will go to the next qn
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(Duration(milliseconds: 500), () {
       nextQuestion();
     });
   }
 
-  void nextQuestion() {
+  void nextQuestion() async {
     if (_questionNumber.value != _questions!.length) {
       _isAnswered = false;
       _pageController!
@@ -117,6 +148,8 @@ class QuizController extends GetxController
       _animationController!.forward().whenComplete(nextQuestion);
     } else {
       // Get package provide us simple way to naviigate another page
+      simpanData();
+
       Get.to(ScoreScreen());
     }
   }
